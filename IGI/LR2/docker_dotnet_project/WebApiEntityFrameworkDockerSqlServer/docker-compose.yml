@@ -1,0 +1,34 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Password123 
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: web_api_app
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__SalesDb=Server=db;Database=SalesDb;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;
+      - db
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+
+networks:
+  app_network:
+    driver: bridge
