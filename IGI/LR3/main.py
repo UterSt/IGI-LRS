@@ -1,11 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: main.py — Main module: interactive menu, launches all tasks.
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 from utils         import run_with_repeat, print_separator
 from task1_series  import run_task1
 from task2_sequence import run_task2
@@ -66,18 +58,13 @@ def main():
     Shows the menu, runs the selected task with repeat support,
     and exits cleanly when the user chooses 0.
     """
-    print("\n" + "=" * 60)
-    print("  Добро пожаловать в Лабораторную работу №3")
-    print("  Тема: Типы данных, коллекции, функции, модули")
-    print("  Разработчик: Студент, Вариант 11")
-    print("=" * 60)
 
     while True:
         print_menu()
         choice = get_menu_choice()
 
         if choice == "0":
-            print("\n  До свидания! Выход из программы.\n")
+            print("\n  Выход из программы.\n")
             break
 
         label, task_func = MENU_ITEMS[choice]
@@ -92,4 +79,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n  [инфо] Программа прервана пользователем (Ctrl+C). До свидания!")
+        print("\n\n  [инфо] Программа прервана пользователем (Ctrl+C).")

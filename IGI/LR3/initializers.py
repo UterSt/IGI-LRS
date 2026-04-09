@@ -1,11 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: initializers.py — List initialization: generator-based and user input
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 import random
 from utils import input_float, input_positive_int, print_separator
 

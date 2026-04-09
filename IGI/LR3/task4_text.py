@@ -1,15 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: task4_text.py — Text analysis of a fixed string. Variant 11:
-#                       a) word count
-#                       b) longest word and its index
-#                       c) every odd-positioned word (1st, 3rd, 5th, ...)
-#                       No regular expressions used.
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 from utils import print_separator
 
 # Fixed source string (words separated by spaces and commas)

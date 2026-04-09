@@ -1,12 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: task3_strings.py — Count uppercase English vowels in a string.
-#                          No regular expressions used.
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 from utils import print_separator
 
 # All uppercase English vowels

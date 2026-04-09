@@ -1,11 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: utils.py — Utility functions: input validation, decorator, repeat loop
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 import time
 import functools
 

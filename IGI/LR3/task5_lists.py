@@ -1,13 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: task5_lists.py — Float list processing. Variant 11:
-#                        a) count elements in range [A, B]
-#                        b) sum of elements after the maximum element
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 from utils import input_float, print_separator
 from initializers import choose_initialization, display_list
 

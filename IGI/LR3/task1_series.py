@@ -1,11 +1,3 @@
-# =============================================================================
-# Lab Work #3: Standard Data Types, Collections, Functions, Modules
-# File: task1_series.py — Power series for ln((x+1)/(x-1)), Variant 11
-# Version: 1.0
-# Developer: Student, Variant 11
-# Date: 2025
-# =============================================================================
-
 import math
 from utils import timer_decorator, input_float_constrained, print_separator
 
@@ -89,9 +81,9 @@ def get_eps():
         float: A positive precision value.
     """
     return input_float_constrained(
-        prompt      = "  Enter precision eps (e.g. 0.0001): ",
+        prompt      = "  Введите точность (например 0.0001): ",
         condition   = lambda v: v > 0,
-        error_msg   = "eps must be a positive number."
+        error_msg   = "Точность должена быть положительным числом."
     )
 
 
@@ -129,9 +121,9 @@ def run_task1():
     Prompts the user for x and eps, computes the power series
     approximation of ln((x+1)/(x-1)), and displays a result table.
     """
-    print_separator("Task 1 — Power Series: ln((x+1)/(x-1))")
-    print("  Formula: 2 * Σ 1/((2n+1)·xˆ(2n+1)),  |x| > 1")
-    print(f"  Max iterations: {MAX_ITERATIONS}\n")
+    print_separator("Задача 1 — Степенной ряд: ln((x+1)/(x-1))")
+    print("  Формула: 2 * Σ 1/((2n+1)·xˆ(2n+1)),  |x| > 1")
+    print(f"  Максимально интераций: {MAX_ITERATIONS}\n")
 
     x   = get_x()
     eps = get_eps()
