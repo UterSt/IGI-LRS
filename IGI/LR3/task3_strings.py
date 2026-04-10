@@ -1,6 +1,5 @@
 from utils import print_separator
 
-# All uppercase English vowels
 UPPERCASE_VOWELS = frozenset("AEIOU")
 
 
