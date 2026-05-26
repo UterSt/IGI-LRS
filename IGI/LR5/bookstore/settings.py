@@ -8,6 +8,7 @@ import os
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
+from tzlocal import get_localzone_name
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -97,7 +98,10 @@ LOGOUT_REDIRECT_URL = "/"
 
 # ─── i18n / timezone ─────────────────────────────────────────────────────────
 LANGUAGE_CODE = "ru-ru"
-TIME_ZONE = os.getenv("TIME_ZONE", "UTC")
+try:
+    TIME_ZONE = get_localzone_name()  # автоматически определяет таймзону ОС сервера
+except Exception:
+    TIME_ZONE = "UTC"  # fallback, если tzlocal не смог определить
 USE_I18N = True
 USE_TZ = True
 
