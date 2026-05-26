@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Словарь терминов{% endblock %}
+{% block content %}
+<h1><i class="bi bi-journal-text"></i> Словарь терминов</h1>
+<div class="accordion" id="faqAccordion">
+  {% for faq in faqs %}
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq{{ faq.pk }}">
+        {{ faq.question }}
+        <small class="ms-3 text-muted">{{ faq.added_at|date:"d/m/Y" }}</small>
+      </button>
+    </h2>
+    <div id="faq{{ faq.pk }}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+      <div class="accordion-body">{{ faq.answer }}</div>
+    </div>
+  </div>
+  {% empty %}<p class="text-muted">Термины не добавлены.</p>{% endfor %}
+</div>
+{% endblock %}

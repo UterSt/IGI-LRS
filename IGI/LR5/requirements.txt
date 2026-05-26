@@ -1,0 +1,10 @@
+Django>=5.0,<5.2
+Pillow>=10.0
+django-crispy-forms>=2.1
+crispy-bootstrap5>=2024.2
+requests>=2.31
+python-dotenv>=1.0
+psycopg2-binary>=2.9
+coverage>=7.4
+pytest-django>=4.8
+factory-boy>=3.3

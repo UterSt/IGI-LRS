@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Оформление заказа{% endblock %}
+{% block content %}
+<h1>Оформление заказа</h1>
+<div class="row g-4">
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ order_form|crispy }}
+          <hr>
+          <h6>Промокод</h6>
+          {{ promo_form|crispy }}
+          <button type="submit" class="btn btn-success btn-lg mt-3">Подтвердить заказ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

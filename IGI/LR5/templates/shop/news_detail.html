@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'shop:news_list' %}">Новости</a></li>
+  <li class="breadcrumb-item active">{{ article.title }}</li></ol>
+</nav>
+{% if article.image %}<img src="{{ article.image.url }}" class="img-fluid rounded mb-3">{% endif %}
+<h1>{{ article.title }}</h1>
+<p class="text-muted">{{ article.published_at|date:"d/m/Y H:i" }} | {{ article.author }}</p>
+<hr>{{ article.content|linebreaks }}
+{% endblock %}

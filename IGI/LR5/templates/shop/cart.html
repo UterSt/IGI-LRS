@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Корзина — BookStore{% endblock %}
+{% block content %}
+<h1><i class="bi bi-cart3"></i> Корзина</h1>
+{% if items %}
+<table class="table">
+  <thead><tr><th>Товар</th><th>Цена</th><th>Кол-во</th><th>Сумма</th><th></th></tr></thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td><a href="{% url 'shop:product_detail' item.product.pk %}">{{ item.product.title }}</a></td>
+      <td>{{ item.product.price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
+      <td>{{ item.qty }}</td>
+      <td>{{ item.subtotal|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
+      <td>
+        <form method="post" action="{% url 'shop:cart_remove' item.product.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr class="fw-bold"><td colspan="3">Итого:</td><td>{{ total|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td><td></td></tr>
+  </tfoot>
+</table>
+<a href="{% url 'shop:checkout' %}" class="btn btn-success">Оформить заказ</a>
+{% else %}
+<p class="text-muted">Корзина пуста. <a href="{% url 'shop:catalogue' %}">Перейти в каталог</a>.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Вакансии{% endblock %}
+{% block content %}
+<h1><i class="bi bi-briefcase"></i> Вакансии</h1>
+{% for v in vacancies %}
+<div class="card mb-3 shadow-sm">
+  <div class="card-body">
+    <h5>{{ v.title }}</h5>
+    {% if v.salary_from or v.salary_to %}
+    <p class="text-success fw-bold">
+      {% if v.salary_from %}от {{ v.salary_from }} BYN{% endif %}
+      {% if v.salary_to %}до {{ v.salary_to }} BYN{% endif %}
+    </p>{% endif %}
+    <p>{{ v.description }}</p>
+    <small class="text-muted">Опубликовано: {{ v.created_at|date:"d/m/Y" }}</small>
+  </div>
+</div>
+{% empty %}<p class="text-muted">Открытых вакансий нет.</p>{% endfor %}
+{% endblock %}
