@@ -1,35 +1,69 @@
 {% extends "base.html" %}
-{% block title %}Поиск в Google Books{% endblock %}
+{% load tz %}
+{% block title %}Таймзона и IPinfo{% endblock %}
 {% block content %}
-<h1><i class="bi bi-search"></i> Поиск книг (Google Books API)</h1>
-<form method="get" class="mb-4">
-  <div class="input-group">
-    <input type="text" name="q" class="form-control form-control-lg" value="{{ query }}" placeholder="Введите название, автора или ISBN...">
-    <button type="submit" class="btn btn-primary">Найти</button>
+<h1><i class="bi bi-geo-alt"></i> Таймзона пользователя</h1>
+<p class="text-muted">Страница заменяет поиск Google Books. Здесь показывается текущий часовой пояс браузера и, при наличии токена, данные IPinfo Lite.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card h-100"><div class="card-body"><small class="text-muted">Часовой пояс</small><div class="fw-bold">{{ browser_timezone }}</div></div></div>
   </div>
-</form>
-{% if query %}
-<h5>Результаты для «{{ query }}»:</h5>
-<div class="row g-3">
-  {% for book in results %}
-  <div class="col-md-6">
-    <div class="card h-100 shadow-sm">
-      <div class="row g-0">
-        {% if book.thumbnail %}
-        <div class="col-3"><img src="{{ book.thumbnail }}" class="img-fluid rounded-start" style="height:130px;object-fit:cover;"></div>
-        {% endif %}
-        <div class="col">
-          <div class="card-body py-2">
-            <h6 class="card-title mb-1">{{ book.title }}</h6>
-            <p class="small text-muted mb-1">{{ book.authors }}</p>
-            <p class="small mb-1">{{ book.publisher }} {% if book.year %}({{ book.year }}){% endif %}</p>
-            {% if book.isbn %}<p class="small mb-0">ISBN: {{ book.isbn }}</p>{% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="col-md-3">
+    <div class="card h-100"><div class="card-body"><small class="text-muted">Дата (DD/MM/YYYY)</small><div class="fw-bold">{{ today_fmt }}</div></div></div>
   </div>
-  {% empty %}<p class="text-muted">По запросу ничего не найдено.</p>{% endfor %}
+  <div class="col-md-3">
+    <div class="card h-100"><div class="card-body"><small class="text-muted">UTC</small><div class="fw-bold">{{ now_utc|timezone:"UTC"|date:"d/m/Y H:i" }}</div></div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100"><div class="card-body"><small class="text-muted">Местное время</small><div class="fw-bold">{{ now_local|date:"d/m/Y H:i" }}</div></div></div>
+  </div>
 </div>
-{% endif %}
+
+<div class="card mb-4">
+  <div class="card-header">Календарь</div>
+  <div class="card-body"><pre class="mb-0 small">{{ calendar_text }}</pre></div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Проверка IP</div>
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-8">
+        <label for="ip" class="form-label">IP-адрес</label>
+        <input
+          type="text"
+          class="form-control"
+          id="ip"
+          name="ip"
+          value="{{ ip_query|default_if_none:'' }}"
+          placeholder="Например, 8.8.8.8 или 1.1.1.1"
+        >
+      </div>
+      <div class="col-md-4">
+        <button type="submit" class="btn btn-primary w-100">Получить информацию</button>
+      </div>
+    </form>
+
+    {% if ip_error %}
+      <div class="alert alert-warning mt-3 mb-0">{{ ip_error }}</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">IPinfo Lite</div>
+  <div class="card-body">
+    {% if resolved_ip %}
+      <p class="mb-1"><strong>IP:</strong> {{ resolved_ip }}</p>
+    {% endif %}
+    {% if ipinfo_preview %}
+      <p class="mb-1"><strong>Страна:</strong> {{ ipinfo_preview.country|default:"—" }}</p>
+      <p class="mb-1"><strong>ASN:</strong> {{ ipinfo_preview.asn|default:"—" }}</p>
+      <p class="mb-0"><strong>Организация:</strong> {{ ipinfo_organization|default:"—" }}</p>
+    {% else %}
+      <p class="mb-0 text-muted">IPinfo Lite требует переменную окружения IPINFO_TOKEN. Этот тариф не возвращает часовой пояс, поэтому он берётся из браузера и сохраняется в cookie browser_tz.</p>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

@@ -12,6 +12,7 @@ Access control:
 import logging
 import calendar
 from datetime import datetime, date
+import ipaddress
 from decimal import Decimal
 from statistics import mean, median, mode, StatisticsError
 
@@ -38,11 +39,11 @@ from .forms import (
     CustomerProfileForm, ProductSearchForm, PromoApplyForm,
 )
 from .services import (
-    search_google_books,
     get_exchange_rates,
     convert_price_byn,
     get_currency_factor,
     get_nbrb_currency_options,
+    get_ipinfo_lite,
 )
 
 logger = logging.getLogger("shop")
@@ -69,14 +70,13 @@ def get_customer_or_none(user):
 def user_timezone_info(request):
     """Return dict with timezone / date info for templates."""
     now_utc = timezone.now()
-    tz_name = timezone.get_current_timezone_name()
     now_local = timezone.localtime(now_utc)
-    cal = calendar.month(now_local.year, now_local.month)
+    tz_name = getattr(request, "browser_timezone", None) or timezone.get_current_timezone_name()
     return {
         "now_utc": now_utc,
         "now_local": now_local,
         "tz_name": tz_name,
-        "calendar_text": cal,
+        "calendar_text": calendar.month(now_local.year, now_local.month),
         "today_fmt": now_local.strftime("%d/%m/%Y"),
     }
 
@@ -213,28 +213,60 @@ def catalogue(request):
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk, is_active=True)
 
-    # Google Books lookup by ISBN if available
-    books_api_data = []
-    if product.isbn:
-        books_api_data = search_google_books(f"isbn:{product.isbn}", max_results=1)
-
     return render(request, "shop/product_detail.html", {
         "product": product,
-        "books_api_data": books_api_data,
     })
 
 
-# ─── Google Books search page ─────────────────────────────────────────────────
+# ─── IPinfo / timezone page ───────────────────────────────────────────────────
 
 def books_api_search(request):
-    """Page that searches Google Books API and shows results."""
-    query = request.GET.get("q", "").strip()
-    results = []
-    if query:
-        results = search_google_books(query, max_results=8)
+    """Page that demonstrates user timezone detection and optional IPinfo data."""
+    entered_ip = (request.GET.get("ip") or "").strip()
+    current_ip = entered_ip or (request.META.get("REMOTE_ADDR") or "").strip()
+
+    ip_error = None
+    ipinfo_preview = {}
+    ipinfo_organization = "—"
+
+    if current_ip:
+        try:
+            ipaddress.ip_address(current_ip)
+            ipinfo_preview = get_ipinfo_lite(current_ip)
+            if isinstance(ipinfo_preview, dict):
+                for key in ("org", "as_name", "as_domain"):
+                    value = ipinfo_preview.get(key)
+                    if isinstance(value, str) and value.strip():
+                        ipinfo_organization = value.strip()
+                        break
+                else:
+                    company = ipinfo_preview.get("company")
+                    if isinstance(company, dict):
+                        for key in ("name", "domain"):
+                            value = company.get(key)
+                            if isinstance(value, str) and value.strip():
+                                ipinfo_organization = value.strip()
+                                break
+        except ValueError:
+            ip_error = f"Некорректный IP-адрес: {current_ip}"
+    else:
+        ip_error = "Введите IP-адрес или откройте страницу с доступного адреса."
+
+    now_utc = timezone.now()
+    now_local = timezone.localtime(now_utc)
+    today_local = timezone.localdate()
+
     return render(request, "shop/books_api_search.html", {
-        "query": query,
-        "results": results,
+        "browser_timezone": getattr(request, "browser_timezone", None) or timezone.get_current_timezone_name(),
+        "now_utc": now_utc,
+        "now_local": now_local,
+        "today_fmt": today_local.strftime("%d/%m/%Y"),
+        "calendar_text": calendar.month(today_local.year, today_local.month),
+        "ipinfo_preview": ipinfo_preview,
+        "ipinfo_organization": ipinfo_organization,
+        "ip_query": entered_ip,
+        "resolved_ip": current_ip,
+        "ip_error": ip_error,
     })
 
 
@@ -473,7 +505,7 @@ def statistics(request):
     )
 
     # Monthly sales (current year)
-    current_year = date.today().year
+    current_year = timezone.localdate().year
     monthly_sales = (
         OrderItem.objects
         .filter(order__sale_date__year=current_year)
@@ -500,7 +532,7 @@ def statistics(request):
 
     # Customer age stats
     customers = Customer.objects.exclude(birth_date=None)
-    today = date.today()
+    today = timezone.localdate()
     ages = [
         today.year - c.birth_date.year - (
             (today.month, today.day) < (c.birth_date.month, c.birth_date.day)

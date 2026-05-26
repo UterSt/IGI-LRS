@@ -9,9 +9,8 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key-change-in-production")
 
@@ -39,6 +38,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "shop.middleware.BrowserTimezoneMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -58,6 +58,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "shop.context_processors.currency_context",
+                "shop.context_processors.timezone_context",
             ],
         },
     },
@@ -100,7 +101,7 @@ LOGOUT_REDIRECT_URL = "/"
 
 # ─── i18n / timezone ─────────────────────────────────────────────────────────
 LANGUAGE_CODE = "ru-ru"
-TIME_ZONE = "UTC"
+TIME_ZONE = os.getenv("TIME_ZONE", "UTC")
 USE_I18N = True
 USE_TZ = True
 
@@ -126,6 +127,7 @@ NBRB_CURRENCIES_URL = "https://api.nbrb.by/exrates/currencies"
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+IPINFO_TOKEN = os.getenv("IPINFO_TOKEN", "")
 
 LOGGING = {
     "version": 1,

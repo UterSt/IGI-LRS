@@ -2,7 +2,7 @@
 services.py — external API wrappers and currency helpers.
 
 External APIs:
-  1. Google Books API — book metadata by ISBN / title
+  1. IPinfo Lite — optional geolocation / timezone helper
   2. NBRB API — official exchange rates without API key
 """
 
@@ -185,6 +185,34 @@ def convert_byn_amount(amount_byn: Any, currency_code: str | None = "BYN") -> De
     factor = get_currency_factor(currency_code)
     return (amount * factor).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+
+
+# ─── IPinfo (timezone / geolocation helper) ───────────────────────────────────
+
+def get_ipinfo_lite(ip_address: str | None = None) -> dict[str, Any]:
+    """
+    Query IPinfo Lite when an access token is configured.
+
+    The free Lite API returns country / continent / ASN information.
+    If no token is configured, the function falls back to an empty dict so
+    the page still renders.
+    """
+    token = getattr(settings, "IPINFO_TOKEN", "")
+    if not token:
+        return {}
+
+    target = (ip_address or "me").strip() or "me"
+    url = f"https://api.ipinfo.io/lite/{target}"
+    params = {"token": token}
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, dict):
+            return data
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("IPinfo Lite unavailable: %s", exc)
+    return {}
 
 # ─── Google Books API ─────────────────────────────────────────────────────────
 

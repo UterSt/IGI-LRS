@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 {% block title %}Главная — BookStore{% endblock %}
 {% block content %}
 
@@ -26,7 +27,7 @@
     </div>
     <div class="col-md-3">
       <small class="text-muted">Время (UTC)</small><br>
-      <strong>{{ now_utc|date:"H:i" }}</strong>
+      <strong>{{ now_utc|timezone:"UTC"|date:"H:i" }}</strong>
     </div>
     <div class="col-md-3">
       <small class="text-muted">Местное время</small><br>

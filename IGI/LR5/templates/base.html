@@ -35,7 +35,7 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">API</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'shop:books_api_search' %}"><i class="bi bi-google"></i> Google Books</a></li>
+            <li><a class="dropdown-item" href="{% url 'shop:books_api_search' %}"><i class="bi bi-geo-alt"></i> Таймзона и IPinfo</a></li>
             <li><a class="dropdown-item" href="{% url 'shop:currency_rates' %}"><i class="bi bi-currency-exchange"></i> Курсы валют</a></li>
           </ul>
         </li>
@@ -104,6 +104,32 @@
 
   {% block content %}{% endblock %}
 </main>
+
+<script>
+(function () {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) return;
+    const cookieName = "browser_tz";
+    const cookies = document.cookie ? document.cookie.split("; ") : [];
+    const existing = cookies.find((c) => c.startsWith(cookieName + "="));
+    const current = existing ? decodeURIComponent(existing.split("=").slice(1).join("=")) : null;
+    const reloadGuard = sessionStorage.getItem("browser_tz_synced") === "1";
+
+    if (current !== tz) {
+      document.cookie = cookieName + "=" + encodeURIComponent(tz) + "; path=/; max-age=31536000; samesite=lax";
+      if (!reloadGuard) {
+        sessionStorage.setItem("browser_tz_synced", "1");
+        window.location.reload();
+      }
+    } else {
+      sessionStorage.removeItem("browser_tz_synced");
+    }
+  } catch (e) {
+    console.warn("Timezone detection failed", e);
+  }
+})();
+</script>
 
 <footer class="bg-dark text-light py-4 mt-5">
   <div class="container text-center">

@@ -38,6 +38,8 @@ services:
       DB_HOST: db
       DB_PORT: "5432"
       LOG_LEVEL: "DEBUG"
+      IPINFO_TOKEN: ${IPINFO_TOKEN:-}
+      TIME_ZONE: ${TIME_ZONE:-UTC}
     depends_on:
       db:
         condition: service_healthy

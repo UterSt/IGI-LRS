@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 {% block title %}Статистика — BookStore{% endblock %}
 
 {% block extra_js %}
@@ -13,7 +14,7 @@
   <div class="row text-center">
     <div class="col-md-3"><small class="text-muted">Временная зона</small><br><strong>{{ tz_name }}</strong></div>
     <div class="col-md-3"><small class="text-muted">Дата (DD/MM/YYYY)</small><br><strong>{{ today_fmt }}</strong></div>
-    <div class="col-md-3"><small class="text-muted">Время UTC</small><br><strong>{{ now_utc|date:"H:i:s" }}</strong></div>
+    <div class="col-md-3"><small class="text-muted">Время UTC</small><br><strong>{{ now_utc|timezone:"UTC"|date:"H:i:s" }}</strong></div>
     <div class="col-md-3"><small class="text-muted">Календарь</small><br><pre class="mb-0 small">{{ calendar_text }}</pre></div>
   </div>
 </div>

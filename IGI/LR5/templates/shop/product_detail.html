@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 {% block title %}{{ product.title }} — BookStore{% endblock %}
 {% block content %}
 
@@ -37,8 +38,8 @@
         {% if product.stock > 0 %}<span class="text-success">{{ product.stock }} шт.</span>
         {% else %}<span class="text-danger">Нет в наличии</span>{% endif %}
       </dd>
-      <dt class="col-sm-4">Добавлен</dt><dd class="col-sm-8">{{ product.created_at|date:"d/m/Y H:i" }} UTC</dd>
-      <dt class="col-sm-4">Изменён</dt><dd class="col-sm-8">{{ product.updated_at|date:"d/m/Y H:i" }} UTC</dd>
+      <dt class="col-sm-4">Добавлен</dt><dd class="col-sm-8">{{ product.created_at|timezone:"UTC"|date:"d/m/Y H:i" }} UTC</dd>
+      <dt class="col-sm-4">Изменён</dt><dd class="col-sm-8">{{ product.updated_at|timezone:"UTC"|date:"d/m/Y H:i" }} UTC</dd>
     </dl>
 
     <div class="d-flex align-items-center gap-3 mb-3">
@@ -74,18 +75,6 @@
 <div class="mt-4">
   <h4>Описание</h4>
   <p>{{ product.description }}</p>
-</div>
-{% endif %}
-
-{% if books_api_data %}
-<div class="mt-4 card border-info">
-  <div class="card-header text-info"><i class="bi bi-google"></i> Данные из Google Books API</div>
-  <div class="card-body">
-    {% with b=books_api_data.0 %}
-    <p><strong>{{ b.title }}</strong> — {{ b.authors }}</p>
-    {% if b.description %}<p class="small text-muted">{{ b.description }}</p>{% endif %}
-    {% endwith %}
-  </div>
 </div>
 {% endif %}
 
