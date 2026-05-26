@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Курсы валют — НБРБ{% endblock %}
+{% block content %}
+<h1><i class="bi bi-currency-exchange"></i> Курсы валют НБРБ</h1>
+<p class="text-muted">Источники: официальный сервис Национального банка Республики Беларусь, без API-ключа.</p>
+
+<div class="alert alert-info">
+  Выбранная валюта интерфейса: <strong>{{ selected_currency }}</strong> — {{ selected_currency_name }}
+</div>
+
+{% if rates %}
+<table class="table table-bordered align-middle">
+  <thead>
+    <tr>
+      <th>Валюта</th>
+      <th>Код</th>
+      <th>Кратность</th>
+      <th>Курс к BYN</th>
+      <th>1 BYN в валюте</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for currency in rates %}
+    <tr {% if currency.code == selected_currency %}class="table-success"{% endif %}>
+      <td><strong>{{ currency.name }}</strong></td>
+      <td>{{ currency.code }}</td>
+      <td>{{ currency.scale }}</td>
+      <td>{{ currency.byn_per_unit|floatformat:4 }}</td>
+      <td>{{ currency.rate_per_byn|floatformat:4 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert alert-warning">Не удалось загрузить курсы валют.</div>
+{% endif %}
+{% endblock %}

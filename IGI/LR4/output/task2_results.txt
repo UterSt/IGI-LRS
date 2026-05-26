@@ -1,0 +1,116 @@
+============================================================
+  ЛР4 — Задание 2. Анализ текста (Вариант 11)
+============================================================
+
+── ОБЩАЯ СТАТИСТИКА ──
+  Всего предложений        : 27
+    Повествовательных (.)  : 19
+    Вопросительных    (?)  : 4
+    Побудительных     (!)  : 4
+  Средняя длина предложения: 40.67 симв.
+  Средняя длина слова      : 4.65 симв.
+  Найдено смайликов        : 4
+
+── ВАРИАНТ 11: Слова с [a-o] И цифрой ──
+  Python3
+  a1go
+  ab2c
+  b2it
+  c0de
+  c0ding
+  data1
+  def3
+  f1nd
+  g0od
+  g3t
+  h3llo
+  h3lp
+  log3
+  m3n
+  mn9o
+  n4o
+  numpy2
+  output2
+  w0rld
+
+── ВАРИАНТ 11: Слова в кавычках ──
+  Количество: 4
+  "Excellence"
+  "wonderful"
+  "testing"
+  "documentation"
+
+── ВАРИАНТ 11: Частота букв ──
+  a: 89
+  b: 16
+  c: 37
+  d: 55
+  e: 125
+  f: 23
+  g: 32
+  h: 43
+  i: 79
+  j: 1
+  k: 6
+  l: 48
+  m: 32
+  n: 92
+  o: 76
+  p: 32
+  q: 2
+  r: 66
+  s: 65
+  t: 87
+  u: 34
+  v: 12
+  w: 16
+  x: 4
+  y: 25
+  z: 1
+
+── ВАРИАНТ 11: Словосочетания через запятую (по алфавиту) ──
+    1. :)))
+The temperature today is around 22 degrees Celsius
+    2. ;-)
+"Excellence" in programming requires practice
+    3. ;--))
+    4. ;---[[[
+Remember that "testing" is crucial and so is "documentation" in software development
+    5. a1go
+    6. and b2it are test strings
+    7. and c0ding make a great combination
+    8. and log3 entries
+    9. and mn9o
+   10. and more
+   11. and numpy2 helps with arrays
+   12. and persistence
+   13. Can you see the difference between ab2c
+   14. Consider efficiency and readability
+   15. Data processing involves many steps
+   16. Dedicated learners achieve great things every single day
+   17. def3
+   18. Do you think that learning Python3 is difficult
+   19. Each algorithm has its own complexity and beauty
+   20. Go ahead and run the code
+   21. Go check the results and verify the output
+   22. Go study programming now
+   23. Hello World
+   24. Is it possible to master Python in one month
+   25. Life is full of beautiful surprises and "wonderful" moments
+   26. Look at this example: h3llo
+   27. Many beginners find it challenging but rewarding
+   28. matplotlib
+   29. Note that c0de
+   30. output2
+   31. pandas
+   32. patience
+   33. Python offers many libraries: numpy2
+   34. Python3 is a powerful language
+   35. Science and technology drive modern progress forward
+   36. The analysis shows data1
+   37. The coordinates are at position m3n and n4o which fall in our valid range
+   38. The function f1nd and g3t are used in our module
+   39. The quick brown fox jumps over the lazy dog
+   40. w0rld
+   41. We have items like h3lp and g0od in the inventory
+   42. What is the best approach to solve this problem

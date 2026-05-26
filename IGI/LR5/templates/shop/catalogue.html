@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Каталог — BookStore{% endblock %}
+{% block content %}
+
+<div class="row mb-4">
+  <div class="col">
+    <h1><i class="bi bi-grid3x3-gap"></i> Каталог книг</h1>
+  </div>
+  {% if user.is_staff %}
+  <div class="col-auto">
+    <a href="{% url 'shop:product_create' %}" class="btn btn-success">
+      <i class="bi bi-plus-lg"></i> Добавить товар
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <!-- Sidebar filters -->
+  <div class="col-lg-3">
+    <div class="card shadow-sm">
+      <div class="card-header"><i class="bi bi-funnel"></i> Фильтры и поиск</div>
+      <div class="card-body">
+        <form method="get">
+          <div class="mb-3">
+            <label class="form-label">Поиск</label>
+            <input type="text" name="q" class="form-control" value="{{ form.q.value|default:'' }}"
+                   placeholder="Название, ISBN, автор…" minlength="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Категория</label>
+            <select name="product_type" class="form-select">
+              <option value="">— Все —</option>
+              {% for t in types %}
+                <option value="{{ t.pk }}" {% if form.product_type.value == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Цена, {{ selected_currency }}</label>
+            <div class="input-group input-group-sm">
+              <input type="number" name="price_min" class="form-control" placeholder="от"
+                     value="{{ form.price_min.value|default:'' }}" min="0" step="0.01">
+              <span class="input-group-text">—</span>
+              <input type="number" name="price_max" class="form-control" placeholder="до"
+                     value="{{ form.price_max.value|default:'' }}" min="0" step="0.01">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Сортировка</label>
+            <select name="sort" class="form-select form-select-sm">
+              {% for val, label in form.fields.sort.choices %}
+                <option value="{{ val }}" {% if form.sort.value == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Применить</button>
+          <a href="{% url 'shop:catalogue' %}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products grid -->
+  <div class="col-lg-9">
+    <div class="row g-3">
+      {% for product in page_obj %}
+      <div class="col-md-4 col-sm-6">
+        <div class="card h-100 shadow-sm">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top" style="height:160px;object-fit:cover;" alt="{{ product.title }}">
+          {% else %}
+            <div class="bg-light d-flex align-items-center justify-content-center" style="height:160px;">
+              <i class="bi bi-book text-secondary" style="font-size:3rem;"></i>
+            </div>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title">{{ product.title }}</h6>
+            <p class="small text-muted mb-1">{{ product.product_type }}</p>
+            <p class="small text-muted mb-2">{{ product.manufacturer }}</p>
+            <p class="fw-bold mt-auto mb-2">{{ product.price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</p>
+            <div class="d-flex gap-1">
+              <a href="{% url 'shop:product_detail' product.pk %}" class="btn btn-sm btn-outline-primary flex-fill">Подробнее</a>
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'shop:cart_add' product.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-success"><i class="bi bi-cart-plus"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+        <div class="col-12"><p class="text-muted">Товары не найдены. Попробуйте изменить параметры поиска.</p></div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">‹</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+          </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">›</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Дашборд сотрудника{% endblock %}
+{% block content %}
+<h1><i class="bi bi-speedometer2"></i> Дашборд сотрудника</h1>
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Последние заказы</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>#</th><th>Покупатель</th><th>Статус</th><th>Дата</th></tr></thead>
+          <tbody>
+            {% for o in orders %}
+            <tr>
+              <td><a href="{% url 'shop:order_detail' o.pk %}">#{{ o.pk }}</a></td>
+              <td>{{ o.customer }}</td>
+              <td>{{ o.get_status_display }}</td>
+              <td>{{ o.sale_date|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="4" class="text-muted">Нет заказов</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Покупатели</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>ФИО</th><th>Email</th><th>Город</th></tr></thead>
+          <tbody>
+            {% for c in customers %}
+            <tr><td>{{ c.full_name }}</td><td>{{ c.email }}</td><td>{{ c.city|default:"—" }}</td></tr>
+            {% empty %}<tr><td colspan="3" class="text-muted">Нет данных</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

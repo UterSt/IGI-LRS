@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Промокоды и купоны{% endblock %}
+{% block content %}
+<h1><i class="bi bi-tag"></i> Промокоды и купоны</h1>
+<h4 class="text-success">Активные</h4>
+<div class="row g-3 mb-4">
+  {% for p in active_promos %}
+  <div class="col-md-4">
+    <div class="card border-success">
+      <div class="card-body text-center">
+        <h3 class="text-success fw-bold">{{ p.code }}</h3>
+        <p class="fs-5">Скидка <strong>{{ p.discount_percent }}%</strong></p>
+        {% if p.valid_until %}<small class="text-muted">До {{ p.valid_until|date:"d/m/Y" }}</small>{% endif %}
+        {% if p.description %}<p class="small mt-2">{{ p.description }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}<p class="text-muted">Активных промокодов нет.</p>{% endfor %}
+</div>
+<h4 class="text-secondary">Архив</h4>
+{% for p in archived_promos %}
+<span class="badge bg-secondary me-2 mb-2 p-2">{{ p.code }} ({{ p.discount_percent }}%)</span>
+{% empty %}<p class="text-muted">Архив пуст.</p>{% endfor %}
+{% endblock %}

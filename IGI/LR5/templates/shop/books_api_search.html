@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Поиск в Google Books{% endblock %}
+{% block content %}
+<h1><i class="bi bi-search"></i> Поиск книг (Google Books API)</h1>
+<form method="get" class="mb-4">
+  <div class="input-group">
+    <input type="text" name="q" class="form-control form-control-lg" value="{{ query }}" placeholder="Введите название, автора или ISBN...">
+    <button type="submit" class="btn btn-primary">Найти</button>
+  </div>
+</form>
+{% if query %}
+<h5>Результаты для «{{ query }}»:</h5>
+<div class="row g-3">
+  {% for book in results %}
+  <div class="col-md-6">
+    <div class="card h-100 shadow-sm">
+      <div class="row g-0">
+        {% if book.thumbnail %}
+        <div class="col-3"><img src="{{ book.thumbnail }}" class="img-fluid rounded-start" style="height:130px;object-fit:cover;"></div>
+        {% endif %}
+        <div class="col">
+          <div class="card-body py-2">
+            <h6 class="card-title mb-1">{{ book.title }}</h6>
+            <p class="small text-muted mb-1">{{ book.authors }}</p>
+            <p class="small mb-1">{{ book.publisher }} {% if book.year %}({{ book.year }}){% endif %}</p>
+            {% if book.isbn %}<p class="small mb-0">ISBN: {{ book.isbn }}</p>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}<p class="text-muted">По запросу ничего не найдено.</p>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

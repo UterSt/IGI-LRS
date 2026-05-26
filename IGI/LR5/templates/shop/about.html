@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}О компании{% endblock %}
+{% block content %}
+<h1>О компании</h1>
+{% for info in info_list %}
+<div class="card mb-3">
+  <div class="card-body">
+    {% if info.year %}<h5 class="text-muted">{{ info.year }}</h5>{% endif %}
+    <h4>{{ info.title }}</h4>
+    <p>{{ info.content }}</p>
+    {% if info.legal_name %}<p class="small text-muted">{{ info.legal_name }} | УНП: {{ info.inn }}</p>{% endif %}
+  </div>
+</div>
+{% empty %}<p class="text-muted">Информация о компании пока не добавлена.</p>{% endfor %}
+{% endblock %}
