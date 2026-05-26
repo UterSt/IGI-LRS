@@ -332,7 +332,7 @@ class Promo(models.Model):
     def is_valid(self):
         if self.status != self.STATUS_ACTIVE:
             return False
-        if self.valid_until and self.valid_until < timezone.now().date():
+        if self.valid_until and self.valid_until < timezone.localdate():
             return False
         return True
 

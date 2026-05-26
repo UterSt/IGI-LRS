@@ -219,3 +219,28 @@ class TestNewsDetailView(TestCase):
         self.article.save()
         r = self.client.get(reverse("shop:news_detail", args=[self.article.pk]))
         self.assertEqual(r.status_code, 404)
+
+
+# ─── Middleware tests ─────────────────────────────────────────────────────────
+
+class TestBrowserTimezoneMiddleware(TestCase):
+    """Tests for BrowserTimezoneMiddleware."""
+
+    def test_valid_timezone_cookie_activates_tz(self):
+        self.client.cookies["browser_tz"] = "Europe/Minsk"
+        r = self.client.get(reverse("shop:home"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_invalid_timezone_cookie_falls_back(self):
+        self.client.cookies["browser_tz"] = "Not/AValid_Zone"
+        r = self.client.get(reverse("shop:home"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_no_timezone_cookie(self):
+        r = self.client.get(reverse("shop:home"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_url_encoded_timezone_cookie(self):
+        self.client.cookies["browser_tz"] = "America%2FNew_York"
+        r = self.client.get(reverse("shop:home"))
+        self.assertEqual(r.status_code, 200)
