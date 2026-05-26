@@ -1,7 +1,7 @@
 """
 Django settings for bookstore project.
 Variant 11 – Book Store
-Python 3.14 / Django 5.x
+Python 3.12 / Django 6.x
 """
 
 import os
@@ -17,6 +17,13 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key-change-in-p
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost 127.0.0.1").split()
+
+# CSRF — нужно для форм при работе через HTTPS (Render, любой прод)
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}"
+    for host in ALLOWED_HOSTS
+    if host not in ("localhost", "127.0.0.1")
+]
 
 # ─── Apps ────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -34,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # сразу после SecurityMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -66,25 +74,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "bookstore.wsgi.application"
 
-# ─── Database ─────────────────────────────────────────────────────────────────
-if os.getenv("USE_POSTGRES", "False") == "True":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME", "bookstore"),
-            "USER": os.getenv("DB_USER", "postgres"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": os.getenv("DB_HOST", "localhost"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-        }
+# ─── Database — всегда SQLite ─────────────────────────────────────────────────
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 # ─── Auth ────────────────────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
@@ -110,6 +106,9 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Whitenoise — раздача статики без nginx/CDN
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -128,6 +127,24 @@ NBRB_CURRENCIES_URL = "https://api.nbrb.by/exrates/currencies"
 # ─── Logging ─────────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 IPINFO_TOKEN = os.getenv("IPINFO_TOKEN", "")
+
+# На Render нет постоянного диска — пишем только в консоль.
+# Локально handler "file" тоже работает, но предупреждений не будет.
+_handlers = ["console"]
+_file_handler = {}
+
+if not os.getenv("RENDER"):  # переменная выставляется Render автоматически
+    _handlers = ["console", "file"]
+    _file_handler = {
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "bookstore.log",
+            "maxBytes": 1024 * 1024 * 5,  # 5 MB
+            "backupCount": 3,
+            "formatter": "verbose",
+            "level": "WARNING",
+        }
+    }
 
 LOGGING = {
     "version": 1,
@@ -149,23 +166,16 @@ LOGGING = {
             "formatter": "simple",
             "level": LOG_LEVEL,
         },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "bookstore.log",
-            "maxBytes": 1024 * 1024 * 5,  # 5 MB
-            "backupCount": 3,
-            "formatter": "verbose",
-            "level": "WARNING",
-        },
+        **_file_handler,
     },
     "loggers": {
         "shop": {
-            "handlers": ["console", "file"],
+            "handlers": _handlers,
             "level": LOG_LEVEL,
             "propagate": False,
         },
         "accounts": {
-            "handlers": ["console", "file"],
+            "handlers": _handlers,
             "level": LOG_LEVEL,
             "propagate": False,
         },
