@@ -2,10 +2,12 @@
 {% block title %}Дашборд сотрудника{% endblock %}
 {% block content %}
 <h1><i class="bi bi-speedometer2"></i> Дашборд сотрудника</h1>
+
 <div class="row g-4">
+  <!-- Последние заказы -->
   <div class="col-md-6">
     <div class="card">
-      <div class="card-header">Последние заказы</div>
+      <div class="card-header fw-bold">Последние заказы</div>
       <div class="card-body p-0">
         <table class="table table-sm mb-0">
           <thead><tr><th>#</th><th>Покупатель</th><th>Статус</th><th>Дата</th></tr></thead>
@@ -23,9 +25,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Все покупатели (таблица) -->
   <div class="col-md-6">
     <div class="card">
-      <div class="card-header">Покупатели</div>
+      <div class="card-header fw-bold">Покупатели</div>
       <div class="card-body p-0">
         <table class="table table-sm mb-0">
           <thead><tr><th>ФИО</th><th>Email</th><th>Город</th></tr></thead>
@@ -39,4 +43,73 @@
     </div>
   </div>
 </div>
+
+<!-- Покупатели с группировкой по городам -->
+<div class="card mt-4">
+  <div class="card-header fw-bold">
+    <i class="bi bi-geo-alt-fill"></i> Список покупателей с группировкой по городам
+  </div>
+  <div class="card-body p-0">
+    {% if customers_by_city %}
+      <div class="accordion" id="cityAccordion">
+        {% for group in customers_by_city %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                    type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+              <strong>{{ group.city }}</strong>&nbsp;
+              <span class="badge bg-secondary ms-2">{{ group.count }} чел.</span>
+            </button>
+          </h2>
+          <div id="collapse{{ forloop.counter }}"
+               class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+               data-bs-parent="#cityAccordion">
+            <div class="accordion-body p-0">
+              <table class="table table-sm mb-0">
+                <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th></tr></thead>
+                <tbody>
+                  {% for c in group.customers %}
+                  <tr>
+                    <td>{{ c.full_name }}</td>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.phone|default:"—" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted p-3">Нет данных о покупателях.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Последние поставки -->
+{% if supplies %}
+<div class="card mt-4">
+  <div class="card-header fw-bold">Последние поставки</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>#</th><th>Поставщик</th><th>Дата</th><th>Сумма</th></tr></thead>
+      <tbody>
+        {% for s in supplies %}
+        <tr>
+          <td>{{ s.pk }}</td>
+          <td>{{ s.supplier }}</td>
+          <td>{{ s.date|date:"d/m/Y" }}</td>
+          <td>{{ s.total_price }} BYN</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Редактировать заказ #{{ order.pk }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'shop:cabinet' %}">Личный кабинет</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'shop:order_detail' order.pk %}">Заказ #{{ order.pk }}</a></li>
+    <li class="breadcrumb-item active">Редактировать</li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white fw-bold">
+        <i class="bi bi-pencil-square"></i> Редактировать заказ #{{ order.pk }}
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          Редактировать можно адрес доставки, дату и примечание пока заказ находится в статусе <strong>«Новый»</strong>.
+        </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> Сохранить
+            </button>
+            <a href="{% url 'shop:order_detail' order.pk %}" class="btn btn-outline-secondary">Отмена</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

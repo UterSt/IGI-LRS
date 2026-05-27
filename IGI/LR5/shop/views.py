@@ -13,6 +13,7 @@ import logging
 import calendar
 from datetime import datetime, date
 import ipaddress
+import math
 from decimal import Decimal
 from statistics import mean, median, mode, StatisticsError
 
@@ -22,6 +23,7 @@ from django.contrib import messages
 from django.db.models import (
     Sum, Count, Avg, Q, F,
 )
+from django.db.models.functions import TruncYear, TruncMonth
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
@@ -102,7 +104,7 @@ def about(request):
 
 def news_list(request):
     articles = Article.objects.filter(is_published=True)
-    paginator = Paginator(articles, 6)
+    paginator = Paginator(articles, 10)
     page = paginator.get_page(request.GET.get("page"))
     return render(request, "shop/news_list.html", {"page_obj": page})
 
@@ -445,6 +447,51 @@ def cabinet(request):
     })
 
 
+# ─── Order CRUD for customer ─────────────────────────────────────────────────
+
+@login_required
+def order_update(request, pk):
+    """Customer can edit address / note / delivery date while status == new."""
+    customer = get_customer_or_none(request.user)
+    if not customer:
+        return redirect("shop:cabinet")
+    order = get_object_or_404(Order, pk=pk, customer=customer)
+    if order.status != Order.STATUS_NEW:
+        from django.contrib import messages as _msg
+        _msg.warning(request, "Редактировать можно только новый заказ.")
+        return redirect("shop:order_detail", pk=pk)
+
+    form = OrderForm(request.POST or None, instance=order)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        logger.info("Order #%s updated by user %s", pk, request.user)
+        from django.contrib import messages as _msg
+        _msg.success(request, "Заказ обновлён.")
+        return redirect("shop:order_detail", pk=pk)
+    return render(request, "shop/order_form.html", {"form": form, "order": order})
+
+
+@login_required
+def order_cancel(request, pk):
+    """Customer cancels own order if status == new."""
+    customer = get_customer_or_none(request.user)
+    if not customer:
+        return redirect("shop:cabinet")
+    order = get_object_or_404(Order, pk=pk, customer=customer)
+    if request.method == "POST":
+        if order.status == Order.STATUS_NEW:
+            order.status = Order.STATUS_CANCELLED
+            order.save()
+            logger.info("Order #%s cancelled by user %s", pk, request.user)
+            from django.contrib import messages as _msg
+            _msg.success(request, "Заказ отменён.")
+        else:
+            from django.contrib import messages as _msg
+            _msg.error(request, "Нельзя отменить заказ в текущем статусе.")
+        return redirect("shop:order_detail", pk=pk)
+    return render(request, "shop/order_confirm_cancel.html", {"order": order})
+
+
 # ─── Employee dashboard ───────────────────────────────────────────────────────
 
 @user_passes_test(is_employee)
@@ -452,10 +499,29 @@ def employee_dashboard(request):
     orders = Order.objects.select_related("customer").order_by("-sale_date")[:50]
     customers = Customer.objects.all()
     supplies = Supply.objects.select_related("supplier").order_by("-date")[:20]
+
+    # Группировка покупателей по городам
+    cities_stats = (
+        Customer.objects
+        .values("city")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+    customers_by_city = []
+    for entry in cities_stats:
+        city_name = entry["city"] or "Не указан"
+        city_customers = Customer.objects.filter(city=entry["city"]).order_by("last_name")
+        customers_by_city.append({
+            "city": city_name,
+            "count": entry["count"],
+            "customers": city_customers,
+        })
+
     return render(request, "shop/employee_dashboard.html", {
         "orders": orders,
         "customers": customers,
         "supplies": supplies,
+        "customers_by_city": customers_by_city,
     })
 
 
@@ -544,6 +610,94 @@ def statistics(request):
         age_stats["mean"] = round(mean(ages), 1)
         age_stats["median"] = round(median(ages), 1)
 
+    # ── Годовой отчёт поступлений (все годы) ──────────────────────────────────
+    annual_report = (
+        OrderItem.objects
+        .values("order__sale_date__year")
+        .annotate(
+            total=Sum(F("quantity") * F("unit_price")),
+            orders_count=Count("order__id", distinct=True),
+        )
+        .order_by("order__sale_date__year")
+    )
+    annual_report_data = [
+        {
+            "year": r["order__sale_date__year"],
+            "total": float((r["total"] or Decimal("0")) * currency_factor),
+            "orders_count": r["orders_count"],
+        }
+        for r in annual_report
+    ]
+
+    # ── Линейный тренд и прогноз продаж ────────────────────────────────────────
+    # Берём ежемесячные продажи за последние 24 месяца для построения тренда
+    today_d = timezone.localdate()
+    # Собираем последние 24 месяца
+    from collections import OrderedDict
+    month_map = OrderedDict()
+    for delta in range(23, -1, -1):
+        # Надёжное вычитание месяцев без timedelta
+        total_months = today_d.year * 12 + today_d.month - 1 - delta
+        yr = total_months // 12
+        mo = total_months % 12 + 1
+        key = (yr, mo)
+        month_map[key] = 0.0
+
+    # Запрашиваем реальные данные
+    trend_qs = (
+        OrderItem.objects
+        .values("order__sale_date__year", "order__sale_date__month")
+        .annotate(total=Sum(F("quantity") * F("unit_price")))
+    )
+    for row in trend_qs:
+        key = (row["order__sale_date__year"], row["order__sale_date__month"])
+        if key in month_map:
+            month_map[key] = float((row["total"] or Decimal("0")) * currency_factor)
+
+    trend_keys = list(month_map.keys())
+    trend_y = list(month_map.values())
+    n = len(trend_y)
+    trend_x = list(range(n))
+
+    # Линейная регрессия методом наименьших квадратов: y = a*x + b
+    trend_line = []
+    forecast_labels = []
+    forecast_values = []
+    trend_info = {}
+    if n >= 2:
+        x_mean = sum(trend_x) / n
+        y_mean = sum(trend_y) / n
+        numerator = sum((trend_x[i] - x_mean) * (trend_y[i] - y_mean) for i in range(n))
+        denominator = sum((trend_x[i] - x_mean) ** 2 for i in range(n))
+        if denominator != 0:
+            a = numerator / denominator  # slope
+            b = y_mean - a * x_mean     # intercept
+        else:
+            a, b = 0.0, y_mean
+
+        trend_line = [round(a * xi + b, 2) for xi in trend_x]
+        trend_info = {
+            "slope": round(a, 4),
+            "intercept": round(b, 2),
+            "direction": "рост" if a > 0 else ("падение" if a < 0 else "стабильность"),
+            "monthly_change": round(a, 2),
+        }
+
+        # Прогноз на 6 месяцев вперёд
+        last_key = trend_keys[-1]
+        for i in range(1, 7):
+            fut_month = last_key[1] + i
+            fut_year = last_key[0] + (fut_month - 1) // 12
+            fut_month = ((fut_month - 1) % 12) + 1
+            xi = n - 1 + i
+            predicted = round(max(0.0, a * xi + b), 2)
+            forecast_labels.append(f"{calendar.month_abbr[fut_month]} {fut_year}")
+            forecast_values.append(predicted)
+
+    trend_labels_str = [
+        f"{calendar.month_abbr[k[1]]} {k[0]}" for k in trend_keys
+    ]
+
     return render(request, "shop/statistics.html", {
         "products_alpha": products_alpha,
         "total_sales": total_sales,
@@ -554,6 +708,16 @@ def statistics(request):
         "monthly_values": monthly_values,
         "stats": stats,
         "age_stats": age_stats,
+        # Годовой отчёт
+        "annual_report_data": annual_report_data,
+        # Линейный тренд
+        "trend_labels": trend_labels_str,
+        "trend_actual": trend_y,
+        "trend_line": trend_line,
+        "trend_info": trend_info,
+        # Прогноз
+        "forecast_labels": forecast_labels,
+        "forecast_values": forecast_values,
         **user_timezone_info(request),
     })
 

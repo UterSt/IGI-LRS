@@ -4,7 +4,7 @@ Uses both path() and re_path() with regex as required.
 """
 
 from django.urls import path, re_path
-from . import views
+from . import views, charts
 
 app_name = "shop"
 
@@ -51,4 +51,14 @@ urlpatterns = [
 
     # ─── JSON API (auth required) ──────────────────────────────────────────
     path("api/products/", views.api_products, name="api_products"),
+
+    # ─── Order CRUD (customer) ─────────────────────────────────────────────
+    re_path(r"^orders/(?P<pk>\d+)/edit/$",   views.order_update, name="order_update"),
+    re_path(r"^orders/(?P<pk>\d+)/cancel/$", views.order_cancel, name="order_cancel"),
+
+    # ─── Matplotlib chart images (superuser only) ──────────────────────────
+    path("charts/monthly/",  charts.chart_monthly,  name="chart_monthly"),
+    path("charts/by-type/",  charts.chart_by_type,  name="chart_by_type"),
+    path("charts/trend/",    charts.chart_trend,     name="chart_trend"),
+    path("charts/annual/",   charts.chart_annual,    name="chart_annual"),
 ]

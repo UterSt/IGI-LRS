@@ -2,25 +2,111 @@
 {% load tz %}
 {% block title %}Заказ #{{ order.pk }}{% endblock %}
 {% block content %}
-<h1>Заказ #{{ order.pk }}</h1>
-<p>Статус: <strong>{{ order.get_status_display }}</strong></p>
-<p>Дата: {{ order.sale_date|date:"d/m/Y H:i" }}</p>
-<p>Покупатель: {{ order.customer }}</p>
-<table class="table">
-  <thead><tr><th>Товар</th><th>Цена</th><th>Кол-во</th><th>Сумма</th></tr></thead>
-  <tbody>
-    {% for item in order.items.all %}
-    <tr>
-      <td>{{ item.product.title }}</td>
-      <td>{{ item.unit_price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
-      <td>{{ item.quantity }}</td>
-      <td>{{ item.subtotal|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-  <tfoot>
-    <tr class="fw-bold"><td colspan="3">Итого:</td><td>{{ order.total_price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td></tr>
-  </tfoot>
-</table>
-<a href="{% url 'shop:cabinet' %}" class="btn btn-outline-secondary">← Назад в кабинет</a>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'shop:cabinet' %}">Личный кабинет</a></li>
+    <li class="breadcrumb-item active">Заказ #{{ order.pk }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <!-- Order info -->
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header fw-bold">Информация о заказе</div>
+      <div class="card-body">
+        <p><span class="text-muted">Номер:</span> <strong>#{{ order.pk }}</strong></p>
+        <p>
+          <span class="text-muted">Статус:</span>
+          {% if order.status == 'new' %}
+            <span class="badge bg-primary">{{ order.get_status_display }}</span>
+          {% elif order.status == 'paid' %}
+            <span class="badge bg-success">{{ order.get_status_display }}</span>
+          {% elif order.status == 'shipped' %}
+            <span class="badge bg-info text-dark">{{ order.get_status_display }}</span>
+          {% elif order.status == 'delivered' %}
+            <span class="badge bg-success">{{ order.get_status_display }}</span>
+          {% elif order.status == 'cancelled' %}
+            <span class="badge bg-danger">{{ order.get_status_display }}</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+          {% endif %}
+        </p>
+        <p><span class="text-muted">Дата:</span> {{ order.sale_date|date:"d/m/Y H:i" }}</p>
+        <p><span class="text-muted">Покупатель:</span> {{ order.customer }}</p>
+        {% if order.delivery_date %}
+        <p><span class="text-muted">Дата доставки:</span> {{ order.delivery_date|date:"d/m/Y" }}</p>
+        {% endif %}
+        {% if order.address %}
+        <p><span class="text-muted">Адрес:</span> {{ order.address }}</p>
+        {% endif %}
+        {% if order.pickup_point %}
+        <p><span class="text-muted">Самовывоз:</span> {{ order.pickup_point }}</p>
+        {% endif %}
+        {% if order.note %}
+        <p><span class="text-muted">Примечание:</span> {{ order.note }}</p>
+        {% endif %}
+        {% if order.promo %}
+        <p><span class="text-muted">Промокод:</span> <code>{{ order.promo.code }}</code> (−{{ order.promo.discount_percent }}%)</p>
+        {% endif %}
+      </div>
+
+      <!-- CRUD buttons: Edit & Cancel (only for new orders, only for owner) -->
+      {% if request.user.is_authenticated and order.status == 'new' %}
+      <div class="card-footer d-flex gap-2">
+        <a href="{% url 'shop:order_update' order.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+          <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'shop:order_cancel' order.pk %}" class="btn btn-sm btn-outline-danger flex-fill">
+          <i class="bi bi-x-circle"></i> Отменить
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Order items -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header fw-bold">Товары в заказе</div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Цена за ед.</th>
+              <th>Кол-во</th>
+              <th>Сумма</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+            <tr>
+              <td>
+                <a href="{% url 'shop:product_detail' item.product.pk %}">{{ item.product.title }}</a>
+              </td>
+              <td>{{ item.unit_price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.subtotal|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold table-light">
+              <td colspan="3">Итого:</td>
+              <td>{{ order.total_price|currency_value:currency_factor|floatformat:2 }} {{ selected_currency }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="{% url 'shop:cabinet' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Назад в кабинет
+  </a>
+</div>
 {% endblock %}
