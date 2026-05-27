@@ -17,7 +17,7 @@ from collections import OrderedDict
 from decimal import Decimal
 
 import matplotlib
-matplotlib.use("Agg")          # non-interactive backend — required on servers
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.patches import Patch
@@ -74,7 +74,7 @@ def _is_superuser(user):
 
 
 # ── 1. Monthly sales bar chart ─────────────────────────────────────────────────
-
+#plot monthly
 @user_passes_test(_is_superuser)
 def chart_monthly(request):
     currency, factor = _get_currency(request)
@@ -107,7 +107,7 @@ def chart_monthly(request):
 
 
 # ── 2. Sales by product type — pie chart ──────────────────────────────────────
-
+#plot type
 @user_passes_test(_is_superuser)
 def chart_by_type(request):
     currency, factor = _get_currency(request)
@@ -149,7 +149,7 @@ def chart_by_type(request):
 
 
 # ── 3. Linear trend + forecast line chart ─────────────────────────────────────
-
+#plot trend
 @user_passes_test(_is_superuser)
 def chart_trend(request):
     currency, factor = _get_currency(request)
@@ -246,7 +246,7 @@ def chart_trend(request):
 
 
 # ── 4. Annual revenue bar chart ────────────────────────────────────────────────
-
+#plot year
 @user_passes_test(_is_superuser)
 def chart_annual(request):
     currency, factor = _get_currency(request)

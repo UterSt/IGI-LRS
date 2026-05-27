@@ -9,7 +9,7 @@ from .models import (
 
 
 # ─── Inlines ──────────────────────────────────────────────────────────────────
-
+#inline записи
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 1

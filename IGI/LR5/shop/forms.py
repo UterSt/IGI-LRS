@@ -85,6 +85,7 @@ class PromoApplyForm(forms.Form):
 
 # ─── Review ──────────────────────────────────────────────────────────────────
 
+#Отзыв форма
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
@@ -94,6 +95,7 @@ class ReviewForm(forms.ModelForm):
             "rating": forms.Select(),
         }
 
+    #valid
     def clean_text(self):
         text = self.cleaned_data.get("text", "").strip()
         if len(text) < 10:

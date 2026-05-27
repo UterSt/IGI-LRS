@@ -24,6 +24,7 @@ class BrowserTimezoneMiddleware:
 
         if tz_name:
             try:
+                #timezone name
                 timezone.activate(ZoneInfo(tz_name))
                 request.browser_timezone = tz_name
             except ZoneInfoNotFoundError:

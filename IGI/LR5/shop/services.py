@@ -172,7 +172,7 @@ def get_currency_by_code(code: str | None) -> dict[str, Any]:
     by_code = _CURRENCY_CACHE.get("by_code") or {item["code"]: item for item in catalog}
     return by_code.get(code, by_code["BYN"])
 
-
+#NBRB
 def get_currency_factor(code: str | None) -> Decimal:
     """How many target currency units correspond to 1 BYN."""
     currency = get_currency_by_code(code)
@@ -189,6 +189,7 @@ def convert_byn_amount(amount_byn: Any, currency_code: str | None = "BYN") -> De
 
 # ─── IPinfo (timezone / geolocation helper) ───────────────────────────────────
 
+#IPinfo
 def get_ipinfo_lite(ip_address: str | None = None) -> dict[str, Any]:
     """
     Query IPinfo Lite when an access token is configured.
@@ -254,6 +255,7 @@ def search_google_books(query: str, max_results: int = 5) -> list[dict]:
 
 # ─── Compatibility wrappers for existing tests ───────────────────────────────
 
+#get NBRB
 def get_exchange_rates(base: str = "EUR", symbols: str = "USD,RUB") -> dict:
     """
     Backward-compatible wrapper.

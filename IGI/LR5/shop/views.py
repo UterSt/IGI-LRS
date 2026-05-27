@@ -53,12 +53,14 @@ logger = logging.getLogger("shop")
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+#only employee
 def is_employee(user):
     return user.is_authenticated and (
         user.is_staff or hasattr(user, "employee_profile")
     )
 
 
+#only superuser
 def is_superuser(user):
     return user.is_superuser
 
@@ -71,14 +73,14 @@ def get_customer_or_none(user):
 
 def user_timezone_info(request):
     """Return dict with timezone / date info for templates."""
-    now_utc = timezone.now()
-    now_local = timezone.localtime(now_utc)
+    now_utc = timezone.now() #timezone current utc
+    now_local = timezone.localtime(now_utc) #timezone local
     tz_name = getattr(request, "browser_timezone", None) or timezone.get_current_timezone_name()
     return {
         "now_utc": now_utc,
         "now_local": now_local,
         "tz_name": tz_name,
-        "calendar_text": calendar.month(now_local.year, now_local.month),
+        "calendar_text": calendar.month(now_local.year, now_local.month), #calendar
         "today_fmt": now_local.strftime("%d/%m/%Y"),
     }
 
@@ -141,7 +143,7 @@ def promo_list(request):
         "archived_promos": archived_promos,
     })
 
-
+#Отзывы лист
 def reviews_list(request):
     reviews = Review.objects.select_related("customer").all()
     customer = get_customer_or_none(request.user)
@@ -171,7 +173,7 @@ def reviews_list(request):
 
 def catalogue(request):
     """Product list with search, filter by type/price, sort."""
-    form = ProductSearchForm(request.GET)
+    form = ProductSearchForm(request.GET) #search
     products = Product.objects.filter(is_active=True).select_related(
         "product_type", "manufacturer"
     )
@@ -194,13 +196,13 @@ def catalogue(request):
                 | Q(authors__last_name__icontains=q)
                 | Q(authors__first_name__icontains=q)
             ).distinct()
-        if pt:
+        if pt: #filter
             products = products.filter(product_type_id=pt)
         if p_min is not None:
             products = products.filter(price__gte=(p_min / currency_factor))
         if p_max is not None:
             products = products.filter(price__lte=(p_max / currency_factor))
-        products = products.order_by(sort)
+        products = products.order_by(sort) #sort
 
     paginator = Paginator(products, 12)
     page = paginator.get_page(request.GET.get("page"))
@@ -233,6 +235,7 @@ def books_api_search(request):
 
     if current_ip:
         try:
+            #use IPinfo
             ipaddress.ip_address(current_ip)
             ipinfo_preview = get_ipinfo_lite(current_ip)
             if isinstance(ipinfo_preview, dict):
@@ -274,6 +277,7 @@ def books_api_search(request):
 
 # ─── Currency API page ────────────────────────────────────────────────────────
 
+#use NBRB
 def currency_rates(request):
     rates = get_nbrb_currency_options()
     return render(request, "shop/currency_rates.html", {"rates": rates})
@@ -367,6 +371,7 @@ def cart_remove(request, pk):
     return redirect("shop:cart")
 
 
+#order create
 @login_required
 def checkout(request):
     customer = get_customer_or_none(request.user)
@@ -420,6 +425,7 @@ def checkout(request):
     })
 
 
+#order detail read
 @login_required
 def order_detail(request, pk):
     customer = get_customer_or_none(request.user)
@@ -439,7 +445,7 @@ def cabinet(request):
     customer = get_customer_or_none(request.user)
     orders = []
     if customer:
-        orders = Order.objects.filter(customer=customer).prefetch_related("items__product")
+        orders = Order.objects.filter(customer=customer).prefetch_related("items__product") #order list read
     return render(request, "shop/cabinet.html", {
         "customer": customer,
         "orders": orders,
@@ -449,6 +455,7 @@ def cabinet(request):
 
 # ─── Order CRUD for customer ─────────────────────────────────────────────────
 
+#order update
 @login_required
 def order_update(request, pk):
     """Customer can edit address / note / delivery date while status == new."""
@@ -471,6 +478,7 @@ def order_update(request, pk):
     return render(request, "shop/order_form.html", {"form": form, "order": order})
 
 
+#order delete
 @login_required
 def order_cancel(request, pk):
     """Customer cancels own order if status == new."""

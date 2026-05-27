@@ -8,6 +8,7 @@ from . import views, charts
 
 app_name = "shop"
 
+#url
 urlpatterns = [
     # ─── Static pages ──────────────────────────────────────────────────────
     path("", views.home, name="home"),

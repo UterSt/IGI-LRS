@@ -24,6 +24,7 @@ logger = logging.getLogger("shop")
 
 # ─── Validators ──────────────────────────────────────────────────────────────
 
+#valid phone
 def validate_phone_by(value: str):
     """Phone must be in format +375 (XX) XXX-XX-XX"""
     pattern = r"^\+375 \(\d{2}\) \d{3}-\d{2}-\d{2}$"
@@ -32,7 +33,7 @@ def validate_phone_by(value: str):
             "Телефон должен быть в формате +375 (29) XXX-XX-XX"
         )
 
-
+#valid age
 def validate_adult(value):
     """Age must be 18+"""
     from datetime import date
@@ -50,6 +51,7 @@ class ProductType(models.Model):
     description = models.TextField("Описание", blank=True)
 
     class Meta:
+        # verbose_name
         verbose_name = "Категория товара"
         verbose_name_plural = "Категории товаров"
         ordering = ["name"]
@@ -105,7 +107,7 @@ class Product(models.Model):
     title = models.CharField("Название", max_length=255)
     article = models.CharField("Артикул", max_length=50, unique=True)
     # ForeignKey → ProductType (один тип — много книг)
-    product_type = models.ForeignKey(
+    product_type = models.ForeignKey( #ForeignKey
         ProductType, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name="products",
@@ -119,7 +121,7 @@ class Product(models.Model):
         verbose_name="Издательство",
     )
     # M2M → Author
-    authors = models.ManyToManyField(
+    authors = models.ManyToManyField( #ManyToMany
         Author, blank=True,
         related_name="products",
         verbose_name="Авторы",
@@ -156,7 +158,7 @@ class Supplier(models.Model):
     address = models.CharField("Адрес", max_length=300, blank=True)
     phone = models.CharField(
         "Телефон", max_length=20,
-        validators=[validate_phone_by],
+        validators=[validate_phone_by], #valid
         help_text="+375 (29) XXX-XX-XX",
     )
     email = models.EmailField("Email", blank=True)
@@ -265,7 +267,7 @@ class Employee(models.Model):
 
 class Customer(models.Model):
     """Покупатель — OneToOne с User"""
-    user = models.OneToOneField(
+    user = models.OneToOneField( #OneToOne
         User, on_delete=models.CASCADE,
         related_name="customer_profile",
         verbose_name="Пользователь",
@@ -559,6 +561,7 @@ class Vacancy(models.Model):
         return self.title
 
 
+#Отзыв
 class Review(models.Model):
     """Отзывы"""
     RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]

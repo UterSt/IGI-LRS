@@ -9,7 +9,7 @@ from shop.models import Customer
 
 logger = logging.getLogger("accounts")
 
-
+#register view
 def register(request):
     if request.user.is_authenticated:
         return redirect("shop:home")

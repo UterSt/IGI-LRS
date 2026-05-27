@@ -19,6 +19,7 @@ class RegisterForm(UserCreationForm):
         widget=forms.DateInput(attrs={"type": "date"}),
         required=True,
     )
+    #valid client register form
     phone = forms.CharField(
         max_length=20, label="Телефон", required=False,
         widget=forms.TextInput(attrs={
@@ -33,12 +34,14 @@ class RegisterForm(UserCreationForm):
         model = User
         fields = ["username", "email", "password1", "password2"]
 
+    #valid phone server
     def clean_phone(self):
         phone = self.cleaned_data.get("phone", "")
         if phone and not re.match(PHONE_PATTERN, phone):
             raise ValidationError("Телефон должен быть в формате +375 (29) XXX-XX-XX")
         return phone
 
+    #valid age server
     def clean_birth_date(self):
         from datetime import date
         bd = self.cleaned_data.get("birth_date")
@@ -50,12 +53,12 @@ class RegisterForm(UserCreationForm):
         return bd
 
     def save(self, commit=True):
-        user = super().save(commit=False)
+        user = super().save(commit=False) #user create
         user.email = self.cleaned_data["email"]
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         if commit:
-            user.save()
+            user.save() #user save
             Customer.objects.create(
                 user=user,
                 first_name=self.cleaned_data["first_name"],
