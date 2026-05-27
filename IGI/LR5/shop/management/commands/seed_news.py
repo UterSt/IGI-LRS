@@ -1,20 +1,16 @@
 """
 Management command: python manage.py seed_news
 
-Creates 10 published news articles with auto-generated placeholder images
-(coloured rectangles with title text, rendered via Pillow).
+Creates 10 published news articles referencing static images in static/img/news/.
+Images are committed to the repo so they work on Render without persistent storage.
 
 Usage:
     python manage.py seed_news            # add if count < 10
     python manage.py seed_news --force    # delete existing and recreate
 """
 
-import io
-import random
-import textwrap
 from django.core.management.base import BaseCommand
-from django.core.files.base import ContentFile
-from django.utils import timezone
+
 
 ARTICLES = [
     {
@@ -27,6 +23,7 @@ ARTICLES = [
             "Открытие состоится 1 июня — приходите, вход свободный!\n\n"
             "В честь открытия все покупатели получат скидку 10% на первую покупку и бесплатный кофе."
         ),
+        "static_image": "img/news/news_01.png",
     },
     {
         "title": "Топ-10 книг этого лета",
@@ -45,6 +42,7 @@ ARTICLES = [
             "10. «Дюна» — Фрэнк Герберт\n\n"
             "Все книги доступны в нашем каталоге с доставкой по всей Беларуси."
         ),
+        "static_image": "img/news/news_02.png",
     },
     {
         "title": "Встреча с автором: Виктор Мартинович",
@@ -56,6 +54,7 @@ ARTICLES = [
             "и подпишет книги.\n\n"
             "Начало в 18:00. Вход по предварительной регистрации — ссылка на сайте магазина."
         ),
+        "static_image": "img/news/news_03.png",
     },
     {
         "title": "Скидки до 30% на классику мировой литературы",
@@ -66,6 +65,7 @@ ARTICLES = [
             "Акция действует с 1 по 30 июня. Чтобы воспользоваться скидкой, добавьте книгу в корзину "
             "и используйте промокод CLASSIC2026."
         ),
+        "static_image": "img/news/news_04.png",
     },
     {
         "title": "Новое поступление: детективы и триллеры",
@@ -77,6 +77,7 @@ ARTICLES = [
             "а также дебютные работы молодых белорусских авторов. "
             "Ищите раздел «Детективы» на странице каталога."
         ),
+        "static_image": "img/news/news_05.png",
     },
     {
         "title": "BookStore запускает программу лояльности",
@@ -90,6 +91,7 @@ ARTICLES = [
             "• Срок действия баллов — 1 год\n\n"
             "Зарегистрированные пользователи уже могут видеть свой баланс в личном кабинете."
         ),
+        "static_image": "img/news/news_06.png",
     },
     {
         "title": "Детская книжная ярмарка в BookStore",
@@ -104,6 +106,7 @@ ARTICLES = [
             "• Розыгрыш книжных наборов\n\n"
             "Ярмарка пройдёт 15 июня с 11:00 до 18:00 в нашем главном магазине. Вход свободный!"
         ),
+        "static_image": "img/news/news_07.png",
     },
     {
         "title": "Как выбрать книгу в подарок: советы BookStore",
@@ -117,6 +120,7 @@ ARTICLES = [
             "4. Подарочная упаковка. В BookStore мы красиво упакуем любую книгу бесплатно.\n\n"
             "5. Подарочный сертификат. Если совсем не уверены — сертификат BookStore решит проблему."
         ),
+        "static_image": "img/news/news_08.png",
     },
     {
         "title": "Обзор: лучшие научно-популярные книги 2026 года",
@@ -130,6 +134,7 @@ ARTICLES = [
             "«Будущее уже здесь» — как технологии ИИ меняют повседневную жизнь.\n\n"
             "Все книги уже в нашем каталоге. Читайте и познавайте мир!"
         ),
+        "static_image": "img/news/news_09.png",
     },
     {
         "title": "BookStore теперь на маркетплейсах",
@@ -144,71 +149,13 @@ ARTICLES = [
             "• Прямую поддержку наших консультантов\n\n"
             "Присоединяйтесь и читайте с удовольствием!"
         ),
+        "static_image": "img/news/news_10.png",
     },
 ]
 
-# Colour palette for placeholder images
-PALETTE = [
-    (13, 110, 253),    # bootstrap blue
-    (25, 135, 84),     # bootstrap green
-    (220, 53, 69),     # bootstrap red
-    (255, 193, 7),     # bootstrap yellow
-    (111, 66, 193),    # bootstrap purple
-    (13, 202, 240),    # bootstrap cyan
-    (253, 126, 20),    # bootstrap orange
-    (32, 201, 151),    # bootstrap teal
-    (108, 117, 125),   # bootstrap secondary
-    (214, 51, 132),    # bootstrap pink
-]
-
-
-def _make_placeholder_image(title: str, color_rgb: tuple) -> bytes:
-    """Return PNG bytes: a solid-colour rectangle with white title text."""
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-        img = Image.new("RGB", (800, 400), color=color_rgb)
-        draw = ImageDraw.Draw(img)
-        # Draw a slightly darker overlay rectangle for contrast
-        r, g, b = color_rgb
-        dark = (max(0, r - 40), max(0, g - 40), max(0, b - 40))
-        draw.rectangle([0, 340, 800, 400], fill=dark)
-
-        # Wrap title text
-        lines = textwrap.wrap(title, width=32)
-        try:
-            font = ImageFont.truetype("DejaVuSans-Bold.ttf", 36)
-        except Exception:
-            font = ImageFont.load_default()
-
-        total_h = len(lines) * 48
-        y = (400 - total_h) // 2
-        for line in lines:
-            bbox = draw.textbbox((0, 0), line, font=font)
-            w = bbox[2] - bbox[0]
-            draw.text(((800 - w) // 2, y), line, fill="white", font=font)
-            y += 48
-
-        # BookStore label at bottom
-        try:
-            small_font = ImageFont.truetype("DejaVuSans.ttf", 20)
-        except Exception:
-            small_font = font
-        draw.text((20, 350), "BookStore", fill="white", font=small_font)
-
-        buf = io.BytesIO()
-        img.save(buf, format="PNG")
-        return buf.getvalue()
-    except ImportError:
-        # Pillow not available — return a 1×1 white pixel
-        return (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
-            b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xff\xff"
-            b"\x3f\x00\x05\xfe\x02\xfe\xdc\xccY\xe7\x00\x00\x00\x00IEND\xaeB`\x82"
-        )
-
 
 class Command(BaseCommand):
-    help = "Seed 10 news articles with placeholder images."
+    help = "Seed 10 news articles referencing static images (Render-compatible)."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -231,21 +178,17 @@ class Command(BaseCommand):
             return
 
         created = 0
-        for i, data in enumerate(ARTICLES):
+        for data in ARTICLES:
             if Article.objects.filter(title=data["title"]).exists():
                 continue
 
-            article = Article(
+            Article.objects.create(
                 title=data["title"],
                 summary=data["summary"],
                 content=data["content"],
+                static_image=data["static_image"],
                 is_published=True,
             )
-            # Generate placeholder image
-            png_bytes = _make_placeholder_image(data["title"], PALETTE[i % len(PALETTE)])
-            filename = f"news_{i + 1:02d}.png"
-            article.image.save(filename, ContentFile(png_bytes), save=False)
-            article.save()
             created += 1
 
         self.stdout.write(self.style.SUCCESS(

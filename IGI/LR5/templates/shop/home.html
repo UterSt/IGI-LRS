@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load tz %}
+{% load static %}
 {% block title %}Главная — BookStore{% endblock %}
 {% block content %}
 
@@ -52,6 +53,14 @@
     {% if latest_article.image %}
     <div class="col-md-3">
       <img src="{{ latest_article.image.url }}"
+           class="img-fluid rounded me-3"
+           style="max-height:140px;width:100%;object-fit:cover;"
+           alt="{{ latest_article.title }}">
+    </div>
+    <div class="col-md-9 ps-3">
+    {% elif latest_article.static_image %}
+    <div class="col-md-3">
+      <img src="{% static latest_article.static_image %}"
            class="img-fluid rounded me-3"
            style="max-height:140px;width:100%;object-fit:cover;"
            alt="{{ latest_article.title }}">

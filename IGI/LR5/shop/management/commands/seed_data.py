@@ -309,23 +309,9 @@ class Command(BaseCommand):
         self.stdout.write("  ✓ 9 orders created")
 
         # ─── Articles ─────────────────────────────────────────────────────────
-        articles_data = [
-            ("Топ-10 книг 2025 года", "Лучшие книги этого года по версии нашего магазина."),
-            ("Новое поступление классики", "Пополнили ассортимент классической литературы."),
-            ("Скидки на детективы", "Весь раздел детективов — со скидкой 15% до конца месяца."),
-            ("Харуки Мураками — новинка", "Ждём поступление нового романа Мураками в апреле."),
-        ]
-        for title, summary in articles_data:
-            Article.objects.get_or_create(
-                title=title,
-                defaults={
-                    "summary": summary,
-                    "content": summary + " Подробности в нашем магазине. Следите за обновлениями.",
-                    "author": emp,
-                    "is_published": True,
-                }
-            )
-        self.stdout.write("  ✓ 4 articles")
+        from django.core.management import call_command
+        call_command("seed_news", force=True)
+        self.stdout.write("  ✓ 10 articles (with images)")
 
         # ─── Company info ─────────────────────────────────────────────────────
         CompanyInfo.objects.get_or_create(

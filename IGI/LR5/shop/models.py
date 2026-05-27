@@ -453,6 +453,7 @@ class Article(models.Model):
     summary = models.CharField("Краткое содержание", max_length=300)
     content = models.TextField("Полный текст")
     image = models.ImageField("Картинка", upload_to="articles/", blank=True, null=True)
+    static_image = models.CharField("Статичная картинка (путь)", max_length=100, blank=True, default="")
     author = models.ForeignKey(
         Employee, on_delete=models.SET_NULL,
         null=True, blank=True,
