@@ -2,11 +2,17 @@
 python manage.py seed_data
 Creates superuser, employees, customers, products, orders, articles etc.
 At least 10 products as required.
+
+Images are taken from static/seed_images/ and copied to media/ so they
+survive git commits and re-deploys.
 """
 
+import os
+import shutil
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 from decimal import Decimal
 from datetime import date, timedelta
 import random
@@ -18,6 +24,22 @@ from shop.models import (
     Order, OrderItem, Promo, PickupPoint,
     Article, CompanyInfo, FAQ, Contact, Vacancy, Review,
 )
+
+
+def copy_seed_image(src_rel, dest_rel):
+    """
+    Copy an image from static/seed_images/<src_rel>
+    to media/<dest_rel>, creating directories as needed.
+    Returns dest_rel (the value to assign to ImageField) or "" on failure.
+    """
+    src = os.path.join(settings.BASE_DIR, "static", "seed_images", src_rel)
+    dst = os.path.join(settings.MEDIA_ROOT, dest_rel)
+    if not os.path.exists(src):
+        return ""
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    if not os.path.exists(dst):
+        shutil.copy2(src, dst)
+    return dest_rel
 
 
 class Command(BaseCommand):
@@ -108,6 +130,11 @@ class Command(BaseCommand):
 
         products = []
         for title, article, ptype, mfr, price, author, isbn, pages, year in products_data:
+            # Copy cover image from static/seed_images to media
+            img_rel = copy_seed_image(
+                f"products/{article}.jpg",
+                f"products/{article}.jpg",
+            )
             p, created = Product.objects.get_or_create(
                 article=article,
                 defaults={
@@ -121,12 +148,17 @@ class Command(BaseCommand):
                     "stock": random.randint(5, 50),
                     "description": f"Известная книга «{title}».",
                     "is_active": True,
+                    "image": img_rel,
                 }
             )
             if created:
                 p.authors.add(author)
+            elif img_rel and not p.image:
+                # Update image if it was missing
+                p.image = img_rel
+                p.save(update_fields=["image"])
             products.append(p)
-        self.stdout.write(f"  ✓ {len(products)} products")
+        self.stdout.write(f"  ✓ {len(products)} products (with covers)")
 
         # ─── Supplier ────────────────────────────────────────────────────────
         sup, _ = Supplier.objects.get_or_create(
@@ -153,14 +185,18 @@ class Command(BaseCommand):
         self.stdout.write("  ✓ Supplier + supply")
 
         # ─── Employee user ────────────────────────────────────────────────────
-        emp_user, _ = User.objects.get_or_create(
+        emp_user, created = User.objects.get_or_create(
             username="employee1",
             defaults={"email": "emp@bookstore.by", "is_staff": True}
         )
-        if _:
+        if created:
             emp_user.set_password("emp12345")
             emp_user.save()
 
+        emp_img_rel = copy_seed_image(
+            "contacts/employee1.jpg",
+            "employees/employee1.jpg",
+        )
         emp, _ = Employee.objects.get_or_create(
             user=emp_user,
             defaults={
@@ -171,8 +207,12 @@ class Command(BaseCommand):
                 "phone": "+375 (29) 111-22-33",
                 "email": "emp@bookstore.by",
                 "position": "Менеджер",
+                "photo": emp_img_rel,
             }
         )
+        if emp_img_rel and not emp.photo:
+            emp.photo = emp_img_rel
+            emp.save(update_fields=["photo"])
         self.stdout.write("  ✓ Employee: employee1 / emp12345")
 
         # ─── Customers ───────────────────────────────────────────────────────
@@ -310,12 +350,17 @@ class Command(BaseCommand):
         self.stdout.write("  ✓ 4 FAQs")
 
         # ─── Contacts ─────────────────────────────────────────────────────────
+        contact_photo_rel = copy_seed_image(
+            "contacts/employee1.jpg",
+            "contacts/employee1.jpg",
+        )
         Contact.objects.get_or_create(
             employee=emp,
             defaults={
                 "role_description": "Приём заказов, консультации по ассортименту",
                 "phone": "+375 (29) 111-22-33",
                 "email": "emp@bookstore.by",
+                "photo": contact_photo_rel,
             }
         )
 
